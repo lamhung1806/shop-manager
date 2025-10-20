@@ -1,0 +1,12 @@
+export enum ROLE {
+  BUYER = 'BUYER',
+  SELLER = 'SELLER',
+  ADMIN = 'ADMIN',
+}
+
+export enum ACCESS_TYPE {
+  ADMIN_ONLY = 'ADMIN_ONLY',
+  BUYER_ONLY = 'BUYER_ONLY',
+  SELLER_ONLY = 'SELLER_ONLY',
+  ALL = 'ALL',
+}
