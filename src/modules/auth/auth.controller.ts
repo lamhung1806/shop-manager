@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { LoginDto, RegisterDto } from './_dto';
+import { LoginDto, RefreshTokenDto, RegisterDto } from './_dto';
 import { AuthService } from './auth.service';
 
 @ApiTags('auth')
@@ -18,5 +18,11 @@ export class AuthController {
   @ApiOperation({ summary: 'User registration' })
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Post('refresh-token')
+  @ApiOperation({ summary: 'Refresh access token' })
+  refreshToken(@Body() refreshToken: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshToken.refreshToken);
   }
 }

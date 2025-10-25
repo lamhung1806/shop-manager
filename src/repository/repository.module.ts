@@ -1,8 +1,10 @@
 import { Global, Module } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { PrismaModule } from 'src/modules/prisma/prisma.module';
+import { ProductRepository } from './product.repository';
+import { FileRepository } from './file.repository';
 
-const repositories = [UserRepository];
+const repositories = [UserRepository, ProductRepository, FileRepository];
 
 @Global()
 @Module({

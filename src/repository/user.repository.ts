@@ -37,19 +37,19 @@ export class UserRepository {
         createdAt: true,
         updatedAt: true,
         phoneNumber: true,
-        // Không select password và refreshToken
       },
     });
   }
 
   async create(createAuthDto: RegisterDto): Promise<User> {
-    const { email, password, username } = createAuthDto;
+    const { email, password, username, role } = createAuthDto;
     createAuthDto;
 
     const createUserPayload: Prisma.UserCreateInput = {
       email,
       name: username,
       password: password,
+      role: role,
     };
 
     if (password) {

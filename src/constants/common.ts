@@ -1,4 +1,0 @@
-export const JWT_CONTAIN = {
-  SECRET: '5d37e7b9-79b9-47d5-b879-d5aa24527653',
-  REFRESH_TOKEN_SECRET: '78dc2382-13b6-4a2d-8e8a-239a02c3732d',
-};

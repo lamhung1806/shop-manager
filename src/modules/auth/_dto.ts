@@ -57,6 +57,21 @@ export class RegisterDto {
   })
   @Match('password', { message: 'Confirm password does not match' })
   confirmPassword: string;
+
+  @ApiProperty({
+    description: 'Role of the client',
+    enum: ROLE,
+    default: ROLE.BUYER,
+  })
+  role: ROLE;
+}
+
+export class RefreshTokenDto {
+  @ApiProperty({
+    description: 'Refresh token of the client',
+  })
+  @IsNotEmpty()
+  refreshToken: string;
 }
 
 export class PayloadUser {

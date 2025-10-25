@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { LoginDto, PayloadUser, RegisterDto } from './_dto';
 import { UserRepository } from 'src/repository/user.repository';
 import { UserService } from '../user/user.service';
 import { User } from 'generated/prisma';
 import { JwtService } from '@nestjs/jwt';
-import { JWT_CONTAIN } from 'src/constants/common';
 import { ChangePasswordDto } from '../user/user-response-dto';
 
 @Injectable()
@@ -27,6 +26,22 @@ export class AuthService {
     await this.userService.getById(userId);
 
     return this.userService.changePassword(userId, changePasswordDto);
+  }
+
+  async refreshToken(refreshToken: string) {
+    const refreshTokenUser = await this.jwtService.verify(refreshToken, {
+      secret: process.env.REFRESH_TOKEN_SECRET,
+    });
+
+    if (!refreshTokenUser || !refreshTokenUser.id) {
+      throw new BadRequestException('Invalid refresh token');
+    }
+
+    const user = await this.userRepository.findById(refreshTokenUser.id);
+    if (!user || user.refreshToken !== refreshToken) {
+      throw new BadRequestException('Invalid refresh token');
+    }
+    return this.processAccessToken(user);
   }
 
   private async processAccessToken(user: User) {
@@ -52,14 +67,14 @@ export class AuthService {
 
   private async generateAccessToken(payload: PayloadUser) {
     return this.jwtService.signAsync(payload, {
-      secret: JWT_CONTAIN.SECRET,
+      secret: process.env.SECRET,
       expiresIn: 1800, //30m-
     });
   }
 
   private async generateRefreshToken(payload: PayloadUser) {
     return this.jwtService.signAsync(payload, {
-      secret: JWT_CONTAIN.REFRESH_TOKEN_SECRET,
+      secret: process.env.REFRESH_TOKEN_SECRET,
       expiresIn: '7d',
     });
   }
