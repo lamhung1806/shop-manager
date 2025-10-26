@@ -23,7 +23,6 @@ export class ProductRepository {
       data: {
         name: productData.name,
         description: productData.description,
-        category: productData.category,
         imageUrls: {
           create: productData.imageUrls?.map((url) => ({ url })),
         },
@@ -38,6 +37,7 @@ export class ProductRepository {
             attributes: {
               create: variant.attributes?.map((attr) => ({
                 name: attr.name,
+                value: attr.value,
               })),
             },
           })),
@@ -101,6 +101,7 @@ export class ProductRepository {
               attributes: true,
             },
           },
+          categories: true,
         },
         orderBy: {
           createdAt: orderBy || 'desc',
@@ -160,6 +161,7 @@ export class ProductRepository {
               attributes: true,
             },
           },
+          categories: true,
         },
         orderBy: {
           createdAt: orderBy || 'desc',

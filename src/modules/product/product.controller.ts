@@ -24,7 +24,6 @@ export class ProductController {
     return this.productService.findAllProducts(userId, query);
   }
   @Get('buyer')
-  @Auth([ROLE.BUYER])
   @ApiOperation({ summary: 'Get all products for buyer' })
   findAllForBuyer(@Query() query: FindAllProductDto) {
     return this.productService.findAllProductsForBuyer(query);

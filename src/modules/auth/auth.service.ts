@@ -68,7 +68,7 @@ export class AuthService {
   private async generateAccessToken(payload: PayloadUser) {
     return this.jwtService.signAsync(payload, {
       secret: process.env.SECRET,
-      expiresIn: 1800, //30m-
+      expiresIn: '1d',
     });
   }
 

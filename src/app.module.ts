@@ -8,6 +8,7 @@ import { RepositoryModule } from './repository/repository.module';
 import { ProductModule } from './modules/product/product.module';
 import { FileModule } from './modules/file/file.module';
 import { OrderModule } from './modules/order/order.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { OrderModule } from './modules/order/order.module';
     ProductModule,
     FileModule,
     OrderModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService],

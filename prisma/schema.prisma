@@ -26,6 +26,8 @@ model User {
   updatedAt   DateTime @updatedAt @map("updated_at")
   refreshToken String? @map("refresh_token")
   products    Product[]
+  carts       Cart[]
+  orders      Order[]
 
   @@map("user")
 
@@ -35,7 +37,6 @@ model Product{
   id            Int            @id @default(autoincrement())
   name          String
   description   String?        @db.Text
-  category      String?
   imageUrls     ProductImage[]         
   isActive      Boolean           @default(true) @map("is_active")
   createdAt     DateTime          @default(now()) @map("created_at")
@@ -43,10 +44,33 @@ model Product{
 
   sellerId      String            @map("seller_id")
   seller        User              @relation(fields: [sellerId], references: [id])
+  categories    ProductCategory[]
 
   variants      ProductVariant[]
-
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
   @@map("product")
+}
+
+model ProductCategory {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  categoryId Int     @map("category_id")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category  Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, categoryId])
+  @@map("product_category")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  products  ProductCategory[]
+
+  @@map("category")
 }
 
 model ProductVariant {
@@ -58,7 +82,8 @@ model ProductVariant {
   productId  Int                  @map("product_id")
   product    Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
   attributes ProductVariantAttribute[] 
-
+  cartItems  CartItem[]
+  orderItems OrderItem[]
  @@map("product_variant")
 }
 
@@ -82,7 +107,69 @@ model ProductVariantAttribute {
   @@map("product_variant_attribute")
 }
 
+model Cart{
+  id        Int      @id @default(autoincrement())
+  userId    String    @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  items     CartItem[]
+  @@map("cart")
+}
+
+model CartItem{
+  id        Int      @id @default(autoincrement())
+  cartId    Int      @map("cart_id")
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId Int      @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  variantId Int?     @map("variant_id")
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  @@unique([cartId, productId, variantId])
+  @@map("cart_item")
+}
+
+ model Order {
+    id         Int       @id @default(autoincrement())
+    userId     String    @map("user_id")
+    user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    totalPrice Float     @map("total_price")
+    status     ORDER_STATUS @default(PENDING)
+    createdAt  DateTime  @default(now()) @map("created_at")
+    updatedAt  DateTime  @updatedAt @map("updated_at")
+    orderItems OrderItem[]
+    
+    @@unique([userId, id])
+    @@map("order")
+ }
+
+ model OrderItem {
+    id         Int       @id @default(autoincrement())
+    orderId    Int       @map("order_id")
+    order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    productId  Int       @map("product_id")
+    product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+    quantity   Int
+    price      Float
+    variantId  Int?      @map("variant_id")
+    variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, productId, variantId])
+  @@map("order_item")
+ }
+
 enum ROLE {
   SELLER
   BUYER
+}
+
+enum ORDER_STATUS {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELED
 }

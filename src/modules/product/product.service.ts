@@ -13,6 +13,7 @@ export class ProductService {
   async findAllProducts(userId: string, query: FindAllProductDto) {
     return this.productRepository.findProductBySeller(userId, query);
   }
+
   async findAllProductsForBuyer(query: FindAllProductDto) {
     return this.productRepository.findProductByBuyer(query);
   }
