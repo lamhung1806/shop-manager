@@ -1,28 +1,23 @@
 # Use Node.js version 20 as the base image
-FROM node:20-alpine
+FROM node:20
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and pnpm-lock.yaml for production dependencies
-COPY package*.json pnpm-lock.yaml ./
+# Copy package.json and package-lock.json
+COPY package*.json ./
 
-# Install pnpm and production dependencies only
+# Install dependencies
+
 RUN npm install -g pnpm
-RUN pnpm install --prod --no-frozen-lockfile
 
-# Copy pre-built application (built locally)
-COPY dist ./dist
-COPY generated ./generated
+RUN pnpm install
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nestjs -u 1001
-RUN chown -R nestjs:nodejs /app
-USER nestjs
+# Copy the rest of the application code
+COPY . .
 
-# Expose port
-EXPOSE 3000
+# Build the application
+RUN pnpm run build
 
 # Run the application
 CMD ["node", "dist/main.js"]
