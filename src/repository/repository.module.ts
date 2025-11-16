@@ -1,22 +1,23 @@
 import { Global, Module } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { PrismaModule } from 'src/modules/prisma/prisma.module';
-import { ProductRepository } from './product.repository';
 import { FileRepository } from './file.repository';
+import { ShopRepository } from './shop.repository';
 import { OrderRepository } from './order.repository';
-import { CartRepository } from './cart.repository';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
+import { TiktokModule } from 'src/modules/tiktok/tiktok.module';
 
 const repositories = [
   UserRepository,
-  ProductRepository,
   FileRepository,
+  ShopRepository,
   OrderRepository,
-  CartRepository,
 ];
 
 @Global()
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, HttpModule, ConfigModule, TiktokModule],
   providers: repositories,
   exports: repositories,
 })

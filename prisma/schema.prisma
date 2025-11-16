@@ -5,8 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -20,156 +21,131 @@ model User {
   email       String   @unique
   password    String
   name        String
-  role        ROLE     @default(BUYER)
+  role        ROLE     @default(SELLER)
   createdAt   DateTime @default(now()) @map("created_at")
   phoneNumber String?  @unique @map("phone_number")
   updatedAt   DateTime @updatedAt @map("updated_at")
   refreshToken String? @map("refresh_token")
-  products    Product[]
-  carts       Cart[]
-  orders      Order[]
+  UserShops   UserShops[]
 
   @@map("user")
-
 }
 
-model Product{
-  id            Int            @id @default(autoincrement())
-  name          String
-  description   String?        @db.Text
-  imageUrls     ProductImage[]         
-  isActive      Boolean           @default(true) @map("is_active")
-  createdAt     DateTime          @default(now()) @map("created_at")
-  updatedAt     DateTime          @updatedAt  @map("updated_at")
+model UserShops {
+  tiktokShopId String
+  appUserId    String
+  isDeleted    Boolean
+  createdOn    DateTime    @db.Timestamp(6)
+  updatedOn    DateTime    @db.Timestamp(6)
+  User  User @relation(fields: [appUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_UserShops_AspNetUsers_AppUserId")
+  TiktokShops  TiktokShops @relation(fields: [tiktokShopId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_UserShops_TiktokShops_TiktokShopId")
 
-  sellerId      String            @map("seller_id")
-  seller        User              @relation(fields: [sellerId], references: [id])
-  categories    ProductCategory[]
-
-  variants      ProductVariant[]
-  cartItems    CartItem[]
-  orderItems   OrderItem[]
-  @@map("product")
-}
-
-model ProductCategory {
-  id        Int      @id @default(autoincrement())
-  productId Int      @map("product_id")
-  categoryId Int     @map("category_id")
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  category  Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, categoryId])
-  @@map("product_category")
-}
-
-model Category {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  products  ProductCategory[]
-
-  @@map("category")
-}
-
-model ProductVariant {
-  id         Int                  @id @default(autoincrement())
-  sku        String?              @unique
-  price      Float
-  stock      Int                  @default(0)
-  imageUrl   String?
-  productId  Int                  @map("product_id")
-  product    Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
-  attributes ProductVariantAttribute[] 
-  cartItems  CartItem[]
-  orderItems OrderItem[]
- @@map("product_variant")
-}
-
-model ProductImage {
-  id        Int      @id @default(autoincrement())
-  url       String
-  productId Int      @map("product_id")
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@map("product_image")
+  @@id([tiktokShopId, appUserId], map: "PK_UserShops")
+  @@index([appUserId], map: "IX_UserShops_AppUserId")
+  @@map("user_shops")
 }
 
 
-model ProductVariantAttribute {
-  id         Int       @id @default(autoincrement())
-  name       String
-  value      String?   
-  variantId  Int       @map("variant_id")
-  variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+model TiktokShops {
+  id            String        @id()
+  cipher        String?
+  name          String?
+  nameSuggest   String?
+  code          String?
+  region        String?
+  openId        String        @unique
+  appKey        String?
+  appSecret     String?
+  isDeleted     Boolean?      @default(false)
+  createdOn     DateTime      @db.Timestamp(6)
+  updatedOn     DateTime      @db.Timestamp(6)
+  clientId      String?
+  status        String?
+  Orders        Orders[]
+  tiktokToken TiktokToken @relation(fields: [openId], references: [openId], onDelete: Cascade, onUpdate: NoAction)
+  UserShops     UserShops[]
 
-  @@map("product_variant_attribute")
+  @@map("tiktok_shops")
+
 }
 
-model Cart{
-  id        Int      @id @default(autoincrement())
-  userId    String    @unique @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  items     CartItem[]
-  @@map("cart")
+model TiktokToken {
+  openId               String        @id()
+  accessToken          String
+  accessTokenExpireIn  BigInt
+  refreshToken         String
+  refreshTokenExpireIn BigInt
+  sellerName           String
+  sellerBaseRegion     String
+  userType             Int
+  isDeleted            Boolean?      @default(false)
+  createdOn            DateTime      @db.Timestamp(6)
+  updatedOn            DateTime      @db.Timestamp(6)
+  TiktokShops          TiktokShops?
+  @@map("tiktok_tokens")
 }
 
-model CartItem{
-  id        Int      @id @default(autoincrement())
-  cartId    Int      @map("cart_id")
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId Int      @map("product_id")
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  quantity  Int      @default(1)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  variantId Int?     @map("variant_id")
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  @@unique([cartId, productId, variantId])
-  @@map("cart_item")
+
+// model OrderDetails {
+//   OrderId   String
+//   ProductId String
+//   Quantity  Int
+//   IsDeleted Boolean
+//   CreatedOn DateTime @db.Timestamp(6)
+//   UpdatedOn DateTime @db.Timestamp(6)
+//   Orders    Orders   @relation(fields: [OrderId], references: [OrderId], onDelete: Cascade, onUpdate: NoAction, map: "FK_OrderDetails_Orders_OrderId")
+//   Products  Products @relation(fields: [ProductId], references: [ProductId], onDelete: Cascade, onUpdate: NoAction, map: "FK_OrderDetails_Products_ProductId")
+
+//   @@id([OrderId, ProductId], map: "PK_OrderDetails")
+//   @@index([ProductId], map: "IX_OrderDetails_ProductId")
+// }
+
+model Orders {
+  orderId                   String         @id(map: "PK_Orders")
+  shopId                    String?
+  productQuantity           Int?
+  totalAmount               Decimal?       @db.Decimal
+  status                    String?
+  note                      String?
+  baseCost                  Decimal?       @db.Decimal
+  baseCostDesign            Decimal?       @db.Decimal
+  label                     String?
+  fulfillName               String?
+  createTimeFromTiktok      DateTime?      @db.Timestamp(6)
+  originalTotalProductPrice String?
+  sellerDiscount            String?
+  shippingFee               String?
+  productTax                String?
+  shippingFeeTax            String?
+  shippingFeeSellerDiscount String?
+  shippingType              String?
+  isDeleted                 Boolean
+  createdOn                 DateTime       @db.Timestamp(6)
+  updatedOn                 DateTime       @db.Timestamp(6)
+  // OrderDetails              OrderDetails[]
+  TiktokShops               TiktokShops?   @relation(fields: [shopId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Orders_TiktokShops_ShopId")
+  @@index([shopId], map: "IX_Orders_ShopId")
+  @@map("orders")
 }
 
- model Order {
-    id         Int       @id @default(autoincrement())
-    userId     String    @map("user_id")
-    user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-    totalPrice Float     @map("total_price")
-    status     ORDER_STATUS @default(PENDING)
-    createdAt  DateTime  @default(now()) @map("created_at")
-    updatedAt  DateTime  @updatedAt @map("updated_at")
-    orderItems OrderItem[]
-    
-    @@unique([userId, id])
-    @@map("order")
- }
 
- model OrderItem {
-    id         Int       @id @default(autoincrement())
-    orderId    Int       @map("order_id")
-    order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-    productId  Int       @map("product_id")
-    product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-    quantity   Int
-    price      Float
-    variantId  Int?      @map("variant_id")
-    variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
-  @@unique([orderId, productId, variantId])
-  @@map("order_item")
- }
+
+// model Order {
+//     id         Int       @id @default(autoincrement())
+//     userId     String    @map("user_id")
+//     totalPrice Float     @map("total_price")
+//     createdAt  DateTime  @default(now()) @map("created_at")
+//     updatedAt  DateTime  @updatedAt @map("updated_at")
+//     @@unique([userId, id])
+//     @@map("order")
+//  }
+
+
 
 enum ROLE {
+  SUPER_ADMIN
+  ADMIN
   SELLER
-  BUYER
-}
-
-enum ORDER_STATUS {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELED
+  FULFILLMENT
 }

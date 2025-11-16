@@ -1,0 +1,12 @@
+import { HttpModule } from '@nestjs/axios';
+import { Module } from '@nestjs/common';
+import { TiktokController } from './tiktok.controller';
+import { TiktokService } from './tiktok.service';
+
+@Module({
+  controllers: [TiktokController],
+  providers: [TiktokService],
+  imports: [HttpModule],
+  exports: [TiktokService],
+})
+export class TiktokModule {}

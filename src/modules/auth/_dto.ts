@@ -61,7 +61,7 @@ export class RegisterDto {
   @ApiProperty({
     description: 'Role of the client',
     enum: ROLE,
-    default: ROLE.BUYER,
+    default: ROLE.SELLER,
   })
   role: ROLE;
 }
