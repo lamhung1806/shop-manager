@@ -1,23 +1,53 @@
-# Use Node.js version 20 as the base image
-FROM node:20
+# -------------------------
+# 1. BUILD STAGE
+# -------------------------
+FROM node:18-alpine AS builder
 
-# Set the working directory in the container
 WORKDIR /app
-
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
 
 RUN npm install -g pnpm
 
+COPY pnpm-lock.yaml ./
+COPY package.json ./
+
 RUN pnpm install
 
-# Copy the rest of the application code
+# Copy source code (bao gồm thư mục prisma)
 COPY . .
 
-# Build the application
-RUN pnpm run build
+# ✅ Generate Prisma Client
+RUN npx prisma generate
 
-# Run the application
+# Build NestJS
+RUN pnpm build
+
+
+
+# -------------------------
+# 2. RUN STAGE
+# -------------------------
+FROM node:18-alpine
+
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install --prod
+
+# ✅ Copy Prisma schema (nếu cần migrations sau này)
+COPY --from=builder /app/prisma ./prisma
+
+# ✅ Copy generated Prisma Client
+COPY --from=builder /app/node_modules ./node_modules
+
+# ✅ Copy generated folder
+COPY --from=builder /app/generated ./generated
+
+# Copy dist code
+COPY --from=builder /app/dist ./dist
+
+EXPOSE 3000
+
 CMD ["node", "dist/main.js"]

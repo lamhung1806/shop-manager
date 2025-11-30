@@ -87,7 +87,6 @@ export class TiktokService {
     const timestamp = Math.floor(Date.now() / 1000);
 
     const queryParams = `shop_cipher=${shop_cipher}&ids=${ids.join(',')}&app_key=${appKey}&timestamp=${timestamp}`;
-    console.log('TikTok Order Detail queryParams:', queryParams);
     const signature = createSignatureTiktok(
       queryParams,
       `/order/202507/orders`,

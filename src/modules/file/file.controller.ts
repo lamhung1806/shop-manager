@@ -18,7 +18,7 @@ export class FileController {
   constructor(private readonly fileService: FileService) {}
 
   @Post('upload')
-  @Auth([ROLE.ADMIN, ROLE.SELLER, ROLE.BUYER])
+  @Auth([ROLE.ADMIN, ROLE.SELLER, ROLE.FULLFILLMENT])
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file'))
   @ApiBody({ type: UploadImageDto })

@@ -3,6 +3,7 @@ import { Prisma, User } from 'generated/prisma';
 import { RegisterDto } from 'src/modules/auth/_dto';
 
 import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { GetAllUserDto } from 'src/modules/user/_dto';
 
 @Injectable()
 export class UserRepository {
@@ -59,6 +60,29 @@ export class UserRepository {
     return this.Prisma.user.create({
       data: createUserPayload,
     });
+  }
+
+  getAllUser(params: GetAllUserDto): Promise<User[]> {
+    const { pageIndex, size, searchText } = params;
+    console.log(params);
+    const skip = pageIndex * size;
+    const take = size;
+    const queryParams: Prisma.UserFindManyArgs = {
+      skip,
+      take,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    };
+    if (searchText) {
+      queryParams.where = {
+        OR: [
+          { name: { contains: searchText, mode: 'insensitive' } },
+          { email: { contains: searchText, mode: 'insensitive' } },
+        ],
+      };
+    }
+    return this.Prisma.user.findMany(queryParams);
   }
 
   async updateRefreshToken(

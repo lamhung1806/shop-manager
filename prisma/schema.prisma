@@ -6,8 +6,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  output        = "../generated/prisma"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+
 }
 
 datasource db {
@@ -86,19 +85,19 @@ model TiktokToken {
 }
 
 
-// model OrderDetails {
-//   OrderId   String
-//   ProductId String
-//   Quantity  Int
-//   IsDeleted Boolean
-//   CreatedOn DateTime @db.Timestamp(6)
-//   UpdatedOn DateTime @db.Timestamp(6)
-//   Orders    Orders   @relation(fields: [OrderId], references: [OrderId], onDelete: Cascade, onUpdate: NoAction, map: "FK_OrderDetails_Orders_OrderId")
-//   Products  Products @relation(fields: [ProductId], references: [ProductId], onDelete: Cascade, onUpdate: NoAction, map: "FK_OrderDetails_Products_ProductId")
+model OrderDetail {
+  orderId   String @unique()
+  productId String
+  quantity  Int
+  isDeleted Boolean
+  createdOn DateTime @db.Timestamp(6)
+  updatedOn DateTime @db.Timestamp(6)
+  Orders    Orders   @relation(fields: [orderId], references: [orderId], onDelete: Cascade, onUpdate: NoAction, map: "FK_OrderDetails_Orders_OrderId")
+  // Products  Products @relation(fields: [ProductId], references: [ProductId], onDelete: Cascade, onUpdate: NoAction, map: "FK_OrderDetails_Products_ProductId")
 
-//   @@id([OrderId, ProductId], map: "PK_OrderDetails")
-//   @@index([ProductId], map: "IX_OrderDetails_ProductId")
-// }
+  @@id([orderId, productId], map: "PK_OrderDetails")
+  @@index([productId], map: "IX_OrderDetails_ProductId")
+}
 
 model Orders {
   orderId                   String         @id(map: "PK_Orders")
@@ -122,7 +121,7 @@ model Orders {
   isDeleted                 Boolean
   createdOn                 DateTime       @db.Timestamp(6)
   updatedOn                 DateTime       @db.Timestamp(6)
-  // OrderDetails              OrderDetails[]
+  OrderDetail              OrderDetail?
   TiktokShops               TiktokShops?   @relation(fields: [shopId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Orders_TiktokShops_ShopId")
   @@index([shopId], map: "IX_Orders_ShopId")
   @@map("orders")
@@ -144,7 +143,6 @@ model Orders {
 
 
 enum ROLE {
-  SUPER_ADMIN
   ADMIN
   SELLER
   FULFILLMENT

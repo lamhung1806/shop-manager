@@ -36,7 +36,7 @@ export class ShopRepository {
 
     await this.prismaService.tiktokShops.create({
       data: {
-        id: shopInfo.open_id,
+        id: authInfo?.shops?.[0]?.id,
         appKey: body.appKey,
         appSecret: process.env.APP_SECRET,
         createdOn: new Date(),
@@ -46,7 +46,7 @@ export class ShopRepository {
         cipher: authInfo?.shops?.[0]?.cipher,
         tiktokToken: {
           create: {
-            openId: shopInfo.open_id,
+            openId: authInfo?.shops?.[0]?.id,
             accessToken: shopInfo.access_token,
             accessTokenExpireIn: BigInt(shopInfo.access_token_expire_in),
             refreshToken: shopInfo.refresh_token,

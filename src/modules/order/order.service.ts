@@ -4,7 +4,9 @@ import { ShopRepository } from 'src/repository/shop.repository';
 import { TikTokOrderResponse } from 'src/shared/types/order';
 import { NotificationService } from '../notification/notification.service';
 import { TiktokService } from '../tiktok/tiktok.service';
-import { WebhookOrderDto } from './_dto';
+import { GetAllOrdersDto, WebhookOrderDto } from './_dto';
+import { Common } from 'src/utils/comon';
+import { PaginationResponse } from '../common/_dto';
 
 @Injectable()
 export class OrderService {
@@ -20,6 +22,7 @@ export class OrderService {
       throw new NotFoundException('Shop not found');
     }
     const order = await this.orderRepository.findById(body.data.order_id);
+
     const orderDetail: TikTokOrderResponse =
       await this.tiktokService.getOrderDetail({
         appKey: shopInfo.appKey,
@@ -45,9 +48,38 @@ export class OrderService {
     }
 
     return {
-      success: true,
       orderId: body.data.order_id,
       status: body.data.order_status,
     };
+  }
+
+  async getAllOrders(getAllOrdersDto: GetAllOrdersDto) {
+    const orders = await this.orderRepository.getAllOrders(getAllOrdersDto);
+    const ordersWithDetail = [];
+    for (const order of orders) {
+      const shopInfo = await this.shopRepository.findById(order.shopId);
+      let orderDetail = null;
+      if (shopInfo) {
+        try {
+          const detailRes: TikTokOrderResponse =
+            await this.tiktokService.getOrderDetail({
+              appKey: shopInfo.appKey,
+              appSecret: shopInfo.appSecret,
+              accessToken: shopInfo.tiktokToken.accessToken,
+              shop_cipher: shopInfo.cipher,
+              ids: [order.orderId],
+            });
+          orderDetail = detailRes.orders[0];
+        } catch (e) {
+          orderDetail = null;
+        }
+      }
+      ordersWithDetail.push({ ...order, orderDetail });
+    }
+    return new PaginationResponse(
+      ordersWithDetail,
+      ordersWithDetail.length,
+      getAllOrdersDto,
+    );
   }
 }

@@ -1,9 +1,16 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { UserRepository } from 'src/repository/user.repository';
-import { LoginDto, RegisterDto } from '../auth/_dto';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { UserRepository } from 'src/repository/user.repository';
 import { Common } from 'src/utils/comon';
-import { ChangePasswordDto } from './user-response-dto';
+import { LoginDto, RegisterDto } from '../auth/_dto';
+import { ChangePasswordDto, GetAllUserDto, UpdateUserDto } from './_dto';
+import { PaginationResponse } from '../common/_dto';
+import { Message } from 'src/shared/utils';
+import { ROLE } from 'src/shared/type';
 
 @Injectable()
 export class UserService {
@@ -26,6 +33,25 @@ export class UserService {
     const salt = await bcrypt.genSalt();
     registerDto.password = await bcrypt.hash(registerDto.password, salt);
     return this.userRepository.create(registerDto);
+  }
+
+  async createAdmin() {
+    const adminExists = await this.userRepository.findByUserName('admin');
+    if (adminExists) {
+      return new ConflictException('Admin user already exists');
+    } else {
+      const salt = await bcrypt.genSalt();
+      const createAdminDto: RegisterDto = {
+        username: 'admin',
+        email: 'admin@example.com',
+        password: 'admin',
+        confirmPassword: 'admin',
+        role: 'ADMIN',
+      };
+      const hashedPassword = await bcrypt.hash('admin', salt);
+      createAdminDto.password = hashedPassword;
+      return this.userRepository.create(createAdminDto);
+    }
   }
 
   async login(loginDto: LoginDto) {
@@ -56,6 +82,27 @@ export class UserService {
     }
 
     return Common.excludeFields(user, ['password', 'refreshToken']);
+  }
+
+  async getAllUsers(params: GetAllUserDto) {
+    const users = await this.userRepository.getAllUser(params);
+    const filteredUsers = users.map((user) =>
+      Common.excludeFields(user, ['password', 'refreshToken']),
+    );
+    return new PaginationResponse(filteredUsers, filteredUsers.length, params);
+  }
+
+  async updateUser(userId: string, updateUserDto: UpdateUserDto) {
+    const findUser = await this.userRepository.findById(userId);
+    if (!findUser) {
+      throw new BadRequestException('User not found');
+    }
+    if (findUser.role === ROLE.ADMIN) {
+      throw new BadRequestException('Cannot update admin user');
+    }
+
+    await this.userRepository.updateUser(userId, updateUserDto);
+    return new Message('User updated successfully');
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {

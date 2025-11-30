@@ -1,3 +1,4 @@
+import { Get } from '@nestjs/common';
 import { OptionalProperty } from 'src/shared/valitators';
 import { PaginatedQuery } from '../common/_dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -10,6 +11,7 @@ import {
   IsBoolean,
   IsDateString,
 } from 'class-validator';
+import { PaginationRequest } from 'src/shared/_dto';
 
 export class FindAllOrderDto extends PaginatedQuery {
   @OptionalProperty()
@@ -149,4 +151,16 @@ export class CreateOrderDto {
   @ApiProperty({ description: 'Is deleted flag', default: false })
   @IsBoolean()
   isDeleted: boolean = false;
+}
+
+export class GetAllOrdersDto extends PaginationRequest {
+  @ApiPropertyOptional({ description: 'Filter by status' })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by shop ID' })
+  @IsOptional()
+  @IsString()
+  shopId?: string;
 }

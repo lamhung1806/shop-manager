@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 import { ROLE } from 'generated/prisma';
+import { PaginationRequest } from 'src/shared/_dto';
 
 export class UserResponseDto {
   id: string;
@@ -24,4 +25,24 @@ export class ChangePasswordDto {
   })
   @IsNotEmpty()
   newPassword: string;
+}
+
+export class GetAllUserDto extends PaginationRequest {
+  @ApiProperty({
+    description: 'search by username or email',
+    required: false,
+    type: String,
+  })
+  searchText?: string;
+}
+
+export class UpdateUserDto {
+  @ApiProperty({
+    description: 'User Role',
+    required: true,
+    type: String,
+    enum: ROLE,
+  })
+  @IsEnum(ROLE)
+  role: ROLE;
 }

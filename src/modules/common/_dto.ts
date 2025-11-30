@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Max, Min } from 'class-validator';
+import { PaginationRequest } from 'src/shared/_dto';
 import { IsInteger } from 'src/shared/valitators';
 
 export class PaginatedQuery {
@@ -36,6 +37,26 @@ export class PaginationResponseDto<T> {
     this.data = data;
     this.total = total;
     this.pageIndex = paginationRequest.page;
+    this.size = paginationRequest.size;
+    this.totalPages = Math.ceil(total / paginationRequest.size) || 0;
+  }
+}
+
+export class PaginationResponse<T> {
+  data: T;
+  total: number;
+  pageIndex: number;
+  size: number;
+  totalPages: number;
+
+  constructor(
+    data: T,
+    total: number,
+    paginationRequest: Omit<PaginationRequest, 'getOffset'>,
+  ) {
+    this.data = data;
+    this.total = total;
+    this.pageIndex = paginationRequest.pageIndex;
     this.size = paginationRequest.size;
     this.totalPages = Math.ceil(total / paginationRequest.size) || 0;
   }

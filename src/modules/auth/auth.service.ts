@@ -4,7 +4,7 @@ import { UserRepository } from 'src/repository/user.repository';
 import { UserService } from '../user/user.service';
 import { User } from 'generated/prisma';
 import { JwtService } from '@nestjs/jwt';
-import { ChangePasswordDto } from '../user/user-response-dto';
+import { ChangePasswordDto } from '../user/_dto';
 
 @Injectable()
 export class AuthService {
